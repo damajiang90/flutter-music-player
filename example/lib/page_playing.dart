@@ -7,7 +7,7 @@ class PagePlaying extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(title: Text(context.listenPlayerValue.metadata.title)),
+      appBar: AppBar(title: Text(context.listenPlayerValue.metadata!.title!)),
       body: SafeArea(
         child: Column(children: <Widget>[
           Expanded(child: Center(child: Icon(Icons.music_video, size: 120))),
@@ -48,17 +48,17 @@ class _PlayingInformation extends StatelessWidget {
     return Column(
       mainAxisSize: MainAxisSize.min,
       children: <Widget>[
-        Text("current playing : ${context.listenPlayerValue.metadata.title} "),
+        Text("current playing : ${context.listenPlayerValue.metadata!.title} "),
         FutureBuilder<MusicMetadata>(
           future: context.player
-              .getPreviousMusic(context.listenPlayerValue.metadata),
+              .getPreviousMusic(context.listenPlayerValue.metadata!),
           builder: (context, snapshot) {
             return Text("previous : ${snapshot.data?.title}");
           },
         ),
         FutureBuilder<MusicMetadata>(
           future:
-              context.player.getNextMusic(context.listenPlayerValue.metadata),
+              context.player.getNextMusic(context.listenPlayerValue.metadata!),
           builder: (context, snapshot) {
             return Text("next : ${snapshot.data?.title}");
           },
@@ -98,7 +98,7 @@ class _PlayingProgressState extends State<_PlayingProgress> {
               child: Slider(
                 value: position
                     .toDouble()
-                    .clamp(0.0, metadata.duration.toDouble()),
+                    .clamp(0.0, metadata!.duration.toDouble()),
                 max: metadata.duration.toDouble(),
                 onChangeStart: (value) {
                   setState(() {

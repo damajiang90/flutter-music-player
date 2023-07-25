@@ -1,11 +1,14 @@
 package tech.soit.quiet
 
+import MusicPlayerScannerChannel
 import android.content.ComponentName
 import android.content.Context
 import android.content.Intent
 import android.content.ServiceConnection
 import android.os.IBinder
 import io.flutter.embedding.engine.plugins.FlutterPlugin
+import io.flutter.embedding.engine.plugins.activity.ActivityAware
+import io.flutter.embedding.engine.plugins.activity.ActivityPluginBinding
 import io.flutter.plugin.common.MethodCall
 import io.flutter.plugin.common.MethodChannel
 import kotlinx.coroutines.CoroutineScope
@@ -20,36 +23,53 @@ import tech.soit.quiet.utils.getPrevious
 
 
 private const val UI_PLUGIN_NAME = "tech.soit.quiet/player.ui"
+private const val SCAN_PLUGIN_NAME = "tech.soit.quiet/player.scan"
 
-class MusicPlayerUiPlugin : FlutterPlugin {
+class MusicPlayerUiPlugin : FlutterPlugin, ActivityAware {
 
     private var playerUiChannel: MusicPlayerUiChannel? = null
+    private var playerScannerChannel: MusicPlayerScannerChannel? = null
 
     override fun onAttachedToEngine(binding: FlutterPlugin.FlutterPluginBinding) {
-        val channel = MethodChannel(binding.binaryMessenger, UI_PLUGIN_NAME)
-        playerUiChannel = MusicPlayerUiChannel(channel, binding.applicationContext)
-        channel.setMethodCallHandler(playerUiChannel)
+        playerUiChannel = MusicPlayerUiChannel(MethodChannel(binding.binaryMessenger, UI_PLUGIN_NAME), binding.applicationContext)
+        playerScannerChannel = MusicPlayerScannerChannel(MethodChannel(binding.binaryMessenger, SCAN_PLUGIN_NAME), binding.applicationContext)
     }
 
     override fun onDetachedFromEngine(binding: FlutterPlugin.FlutterPluginBinding) {
         playerUiChannel?.destroy()
     }
 
+    override fun onAttachedToActivity(activityPluginBinding: ActivityPluginBinding) {
+        playerScannerChannel?.onAttachedToActivity(activityPluginBinding)
+    }
+
+    override fun onDetachedFromActivityForConfigChanges() {
+        playerScannerChannel?.onDetachedFromActivityForConfigChanges()
+    }
+
+    override fun onReattachedToActivityForConfigChanges(activityPluginBinding: ActivityPluginBinding) {
+        playerScannerChannel?.onReattachedToActivityForConfigChanges(activityPluginBinding)
+    }
+
+    override fun onDetachedFromActivity() {
+        playerScannerChannel?.onDetachedFromActivity()
+    }
+
 }
 
 
-private class MusicPlayerUiChannel(
-    channel: MethodChannel,
-    context: Context
-) : MethodChannel.MethodCallHandler {
+private class MusicPlayerUiChannel : MethodChannel.MethodCallHandler {
 
-    private val remotePlayer = context.startMusicService()
+    private val remotePlayer: RemotePlayer
 
-    private val uiPlaybackPlugin = MusicPlayerCallbackPlugin(channel)
+    private val uiPlaybackPlugin: MusicPlayerCallbackPlugin
 
     private var destroyed = false
 
-    init {
+    constructor(channel: MethodChannel, context: Context) {
+        remotePlayer = context.startMusicService()
+        uiPlaybackPlugin = MusicPlayerCallbackPlugin(channel)
+        channel.setMethodCallHandler(this)
         remotePlayer.doWhenSessionReady {
             if (!destroyed) {
                 it.addCallback(uiPlaybackPlugin)

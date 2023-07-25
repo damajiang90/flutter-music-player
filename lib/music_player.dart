@@ -1,5 +1,6 @@
 export 'src/channel_service.dart';
 export 'src/channel_ui.dart';
+export 'src/channel_scanner.dart';
 export "src/model/playback_error.dart";
 export 'src/player/music_metadata.dart';
 export 'src/player/play_mode.dart';

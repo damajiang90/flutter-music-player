@@ -69,7 +69,7 @@ void playerBackgroundService() async {
     playUriInterceptor: (mediaId, fallbackUrl) async {
       debugPrint("get media play uri : $mediaId , $fallbackUrl");
       if (mediaId == 'rise') return "asset:///tracks/rise.mp3";
-      return fallbackUrl;
+      return fallbackUrl!;
     },
     imageLoadInterceptor: (metadata) async {
       debugPrint("load image for ${metadata.mediaId} , ${metadata.title}");
@@ -77,13 +77,14 @@ void playerBackgroundService() async {
         final data = await rootBundle.load("images/bamboo.jpg");
         return Uint8List.view(data.buffer);
       }
-      return null;
+      return null!;
     },
     playQueueInterceptor: ExamplePlayQueueInterceptor(),
   );
 }
 
 class ExampleApp extends StatelessWidget {
+  ExampleApp({super.key});
   @override
   Widget build(BuildContext context) {
     return PlayerWidget(
@@ -114,7 +115,7 @@ class ExamplePage extends StatelessWidget {
 class _PlayQueueListView extends StatelessWidget {
   final List<PlayQueue> playQueueList;
 
-  const _PlayQueueListView({Key key, this.playQueueList}) : super(key: key);
+  const _PlayQueueListView({super.key, required this.playQueueList});
 
   @override
   Widget build(BuildContext context) {

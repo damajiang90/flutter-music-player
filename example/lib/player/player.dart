@@ -7,7 +7,7 @@ export 'package:music_player/music_player.dart';
 class PlayerWidget extends StatefulWidget {
   final Widget child;
 
-  const PlayerWidget({Key key, this.child}) : super(key: key);
+  const PlayerWidget({super.key, required this.child});
 
   static TransportControls transportControls(BuildContext context) {
     return player(context).transportControls;
@@ -15,7 +15,7 @@ class PlayerWidget extends StatefulWidget {
 
   static MusicPlayer player(BuildContext context) {
     final _PlayerWidgetState state =
-        context.findAncestorStateOfType<_PlayerWidgetState>();
+        context.findAncestorStateOfType<_PlayerWidgetState>()!;
     return state.player;
   }
 
@@ -33,7 +33,7 @@ extension PlayerContext on BuildContext {
 }
 
 class _PlayerWidgetState extends State<PlayerWidget> {
-  MusicPlayer player;
+  late MusicPlayer player;
 
   @override
   void initState() {
@@ -68,15 +68,15 @@ class PlayerStateWidget extends InheritedWidget {
   final MusicPlayerValue state;
 
   const PlayerStateWidget({
-    Key key,
-    @required this.state,
-    @required Widget child,
+    super.key,
+    required this.state,
+    required Widget child,
   })  : assert(child != null),
-        super(key: key, child: child);
+        super(child: child);
 
   static MusicPlayerValue of(BuildContext context) {
     final widget =
-        context.dependOnInheritedWidgetOfExactType<PlayerStateWidget>();
+        context.dependOnInheritedWidgetOfExactType<PlayerStateWidget>()!;
     return widget.state;
   }
 
