@@ -5,6 +5,7 @@ import android.content.ComponentName
 import android.content.Context
 import android.content.Intent
 import android.content.ServiceConnection
+import android.os.Build
 import android.os.IBinder
 import io.flutter.embedding.engine.plugins.FlutterPlugin
 import io.flutter.embedding.engine.plugins.activity.ActivityAware
@@ -127,6 +128,11 @@ private class MusicPlayerUiChannel : MethodChannel.MethodCallHandler {
 private fun Context.startMusicService(): RemotePlayer {
     val intent = Intent(this, MusicPlayerService::class.java)
     intent.action = MusicPlayerService.ACTION_MUSIC_PLAYER_SERVICE
+    /*if(Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
+        startForegroundService(intent)
+    }
+    else {
+    }*/
     startService(intent)
     val player = RemotePlayer()
     if (!bindService(intent, player, Context.BIND_AUTO_CREATE)) {

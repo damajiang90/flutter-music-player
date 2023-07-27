@@ -35,6 +35,8 @@ class MusicPlayerScannerChannel: MethodCallHandler, RequestPermissionsResultList
 
     fun onAttachedToActivity(activityPluginBinding: ActivityPluginBinding) {
         this.activity = activityPluginBinding.activity
+        activityPluginBinding.removeRequestPermissionsResultListener(this)
+        activityPluginBinding.addRequestPermissionsResultListener(this)
     }
 
     fun onDetachedFromActivityForConfigChanges() {
@@ -92,7 +94,7 @@ class MusicPlayerScannerChannel: MethodCallHandler, RequestPermissionsResultList
         }
     }
     private fun scanAllSongs(): java.util.ArrayList<java.util.HashMap<*, *>>? {
-        val scanner = MusicPlayerScanner(activity.contentResolver)
+        val scanner = MusicPlayerScanner(activity)
         // Scan all files under Music folder in external storage directory
         scanMusicFiles(Environment.getExternalStoragePublicDirectory(Environment.DIRECTORY_MUSIC).listFiles())
         scanner.prepare()

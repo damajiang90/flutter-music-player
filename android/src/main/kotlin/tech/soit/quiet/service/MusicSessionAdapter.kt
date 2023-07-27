@@ -4,6 +4,7 @@ import android.app.PendingIntent
 import android.content.Context
 import android.content.Intent
 import android.content.pm.PackageManager
+import android.os.Build
 import android.os.Bundle
 import android.support.v4.media.MediaMetadataCompat
 import android.support.v4.media.session.MediaSessionCompat
@@ -102,7 +103,8 @@ class MusicSessionCallbackAdapter(
         if (intent != null) {
             intent = Intent(intent)
             intent.putExtra("mediaId", metadata.mediaId)
-            mediaSession.setSessionActivity(PendingIntent.getActivity(context, 1000, intent, 0))
+            val flags = if(Build.VERSION.SDK_INT >= Build.VERSION_CODES.S) PendingIntent.FLAG_IMMUTABLE else 0
+            mediaSession.setSessionActivity(PendingIntent.getActivity(context, 1000, intent, flags))
         } else {
             mediaSession.setSessionActivity(null)
         }
