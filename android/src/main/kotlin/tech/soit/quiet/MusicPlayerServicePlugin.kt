@@ -2,6 +2,7 @@ package tech.soit.quiet
 
 import android.content.Context
 import android.net.Uri
+import android.util.Log
 import io.flutter.FlutterInjector
 import io.flutter.embedding.engine.FlutterEngine
 import io.flutter.embedding.engine.FlutterJNI
@@ -149,6 +150,7 @@ class MusicPlayerServicePlugin(
         val url = invokeAsyncCast(
             "getPlayUrl", mapOf("id" to id, "url" to fallback)
         ) { fallback } ?: throw IllegalStateException("can not get play uri for $id .")
+        Log.e("getPlayUrl", "url:${url},fallback:${fallback}");
         return Uri.parse(url)
     }
 

@@ -10,6 +10,7 @@ import com.google.android.exoplayer2.upstream.DefaultDataSource
 import kotlinx.coroutines.runBlocking
 import tech.soit.quiet.MusicPlayerServicePlugin
 import tech.soit.quiet.player.MusicMetadata
+import java.io.File
 
 internal fun MusicMetadata.toMediaSource(
     context: Context,
@@ -29,12 +30,18 @@ private const val SCHEME = "quiet"
  * this uri will handle in [UrlUpdatingDataSource]
  */
 private fun buildMediaUri(metadata: MusicMetadata): Uri {
-    return Uri.Builder()
-        .scheme(SCHEME)
-        .path("player")
-        .appendQueryParameter("id", metadata.mediaId)
-        .appendQueryParameter("uri", metadata.mediaUri ?: "")
-        .build()
+    return if(metadata.isLocal) {
+        Uri.fromFile(File(metadata.mediaUri))
+    }
+    else {
+        Uri.Builder()
+            .scheme(SCHEME)
+            .path("player")
+            .appendQueryParameter("id", metadata.mediaId)
+            .appendQueryParameter("uri", metadata.mediaUri ?: "")
+            .build()
+    }
+
 }
 
 /**
