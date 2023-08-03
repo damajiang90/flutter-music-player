@@ -15,6 +15,7 @@ import android.util.Size
 import androidx.annotation.RequiresApi
 import java.io.ByteArrayOutputStream
 import java.io.File
+import java.io.FileNotFoundException
 import java.lang.Exception
 import java.util.Random
 
@@ -25,10 +26,9 @@ class MusicPlayerScanner(activity: Activity) {
     private val mRandom = Random()
     private val mAlbumMap = HashMap<Long, String>()
     private val mAudioPath = HashMap<Long, String>()
-    private val mNeedCacheAlbum = Build.VERSION.SDK_INT >= Build.VERSION_CODES.Q
 
     fun prepare() {
-        if(!mNeedCacheAlbum) {
+        if(Build.VERSION.SDK_INT < Build.VERSION_CODES.Q) {
             // load all album art
             loadAlbumArt()
         }
@@ -90,7 +90,6 @@ class MusicPlayerScanner(activity: Activity) {
                 val path = cursor.getString(cursor.getColumnIndexOrThrow(MediaStore.Audio.Albums.ALBUM_ART))
                 if(!TextUtils.isEmpty(path)) {
                     mAlbumMap[id] = path
-                    Log.e("MusicScanner", "getAlbumArt:${id}")
                 }
             } while (cursor.moveToNext())
         }
@@ -107,6 +106,9 @@ class MusicPlayerScanner(activity: Activity) {
         )
         if (cursor!!.moveToFirst()) {
             val localAlbumDir = activity.getExternalFilesDir("localAlbum")
+            val mNeedCacheAlbum = Build.VERSION.SDK_INT >= Build.VERSION_CODES.Q
+            val albumSize = if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.LOLLIPOP)
+                Size(256, 256) else null
             if(mNeedCacheAlbum) {
                 if (localAlbumDir != null) {
                     if(localAlbumDir.exists()) {
@@ -116,28 +118,35 @@ class MusicPlayerScanner(activity: Activity) {
                 }
             }
             do {
-                val id = cursor.getLong(cursor.getColumnIndexOrThrow(MediaStore.Audio.Media._ID))
-                val path = cursor.getString(cursor.getColumnIndexOrThrow(MediaStore.Audio.Media.DATA))
-                if(!TextUtils.isEmpty(path)) {
-                    mAudioPath[id] = path
-                    if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.Q) {
-                        val albumId = cursor.getLong(cursor.getColumnIndexOrThrow(MediaStore.Audio.Media.ALBUM_ID))
-                        val contentUri: Uri = ContentUris.withAppendedId(MediaStore.Audio.Media.EXTERNAL_CONTENT_URI, id)
-                        try {
-                            val album = mContentResolver?.loadThumbnail(contentUri, Size(256, 256), null)
-                            if(album != null && localAlbumDir != null) {
+                var album: Bitmap? = null;
+                try {
+                    val id = cursor.getLong(cursor.getColumnIndexOrThrow(MediaStore.Audio.Media._ID))
+                    val path = cursor.getString(cursor.getColumnIndexOrThrow(MediaStore.Audio.Media.DATA))
+                    if(!TextUtils.isEmpty(path)) {
+                        mAudioPath[id] = path
+                        if (mNeedCacheAlbum) {
+                            val albumId = cursor.getLong(cursor.getColumnIndexOrThrow(MediaStore.Audio.Media.ALBUM_ID))
+                            val contentUri: Uri = ContentUris.withAppendedId(MediaStore.Audio.Media.EXTERNAL_CONTENT_URI, id)
+                            mAlbumMap[albumId] = contentUri.toString()
+                            /*album = getContentResolver()!!.loadThumbnail(contentUri, albumSize!!, null)
+                            if(album != null) {
                                 val byteArrayStream = ByteArrayOutputStream()
                                 album.compress(Bitmap.CompressFormat.JPEG, 80, byteArrayStream)
                                 val file = File(localAlbumDir, "album_${albumId}.jpg")
                                 file.writeBytes(byteArrayStream.toByteArray())
                                 mAlbumMap[albumId] = file.path
-                                Log.e("saveCacheAlbum:", "albumId:$albumId,uri:${file.path}")
-                            }
-                        }
-                        catch (exception: Exception) {
-                            exception.printStackTrace()
+                                Log.i("saveCacheAlbum:", "albumId:$albumId,len:${file.length()},uri:${file.path}")
+                            }*/
                         }
                     }
+                }
+                catch (_: FileNotFoundException) {
+                }
+                catch (exception: Exception) {
+                    exception.printStackTrace()
+                }
+                finally {
+                    album?.recycle()
                 }
             } while (cursor.moveToNext())
         }

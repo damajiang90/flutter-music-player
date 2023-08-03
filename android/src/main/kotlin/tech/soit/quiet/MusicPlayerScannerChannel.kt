@@ -4,22 +4,21 @@ import android.app.Activity
 import android.content.Context
 import android.content.Intent
 import android.content.pm.PackageManager
+import android.graphics.Bitmap
 import android.net.Uri
 import android.os.Build
 import android.os.Environment
 import android.os.Process
-import android.util.Log
-import io.flutter.embedding.engine.plugins.FlutterPlugin
-import io.flutter.embedding.engine.plugins.activity.ActivityAware
+import android.util.Size
+import androidx.annotation.RequiresApi
 import io.flutter.embedding.engine.plugins.activity.ActivityPluginBinding
 import io.flutter.plugin.common.MethodCall
 import io.flutter.plugin.common.MethodChannel
 import io.flutter.plugin.common.MethodChannel.MethodCallHandler
 import io.flutter.plugin.common.PluginRegistry.RequestPermissionsResultListener
 import tech.soit.quiet.MusicPlayerScanner
-import tech.soit.quiet.MusicPlayerUiPlugin
+import java.io.ByteArrayOutputStream
 import java.io.File
-
 
 
 class MusicPlayerScannerChannel: MethodCallHandler, RequestPermissionsResultListener {
@@ -54,8 +53,35 @@ class MusicPlayerScannerChannel: MethodCallHandler, RequestPermissionsResultList
                 scanPendingResult = result
                 checkPermission(true)
             }
+            "loadContentThumbnail" -> {
+                if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.Q) {
+                    val map = call.arguments as Map<*, *>
+                    result.success(loadContentThumbnail(map["uri"] as String))
+                }
+                else {
+                    result.success(null)
+                }
+            }
             else -> result.notImplemented()
         }
+    }
+
+    @RequiresApi(Build.VERSION_CODES.Q)
+    private fun loadContentThumbnail(uriStr: String): ByteArray {
+        var thumbnail: Bitmap? = null
+        val byteArrayStream = ByteArrayOutputStream()
+        try {
+            val uri = Uri.parse(uriStr)
+            thumbnail = context.contentResolver.loadThumbnail(uri, Size(256, 256), null)
+            thumbnail.compress(Bitmap.CompressFormat.JPEG, 80, byteArrayStream)
+        }
+        catch (e: Exception) {
+            e.printStackTrace()
+        }
+        finally {
+            thumbnail?.recycle()
+        }
+        return byteArrayStream.toByteArray()
     }
 
     private fun checkPermission(handlePermission: Boolean) {
@@ -109,7 +135,6 @@ class MusicPlayerScannerChannel: MethodCallHandler, RequestPermissionsResultList
     }
 
     private fun doScanLocalMusic() {
-        Log.e("SCAN", "doScanLocalMusic")
         scanPendingResult?.success(scanAllSongs())
         scanPendingResult = null
     }

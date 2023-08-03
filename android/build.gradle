@@ -102,5 +102,5 @@ dependencies {
     androidTestImplementation "androidx.test.ext:junit:1.1.1"
 
     /// implementation flutter.jar for library Test
-    androidTestImplementation files("libs/flutter.jar")
+    compileOnly files("libs/flutter.jar")
 }

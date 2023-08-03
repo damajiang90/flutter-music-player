@@ -129,11 +129,12 @@ private fun Context.startMusicService(): RemotePlayer {
     val intent = Intent(this, MusicPlayerService::class.java)
     intent.action = MusicPlayerService.ACTION_MUSIC_PLAYER_SERVICE
     /*if(Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
-        startForegroundService(intent)
+        this.startForegroundService(intent)
     }
     else {
+        this.startService(intent)
     }*/
-    startService(intent)
+    this.startService(intent)
     val player = RemotePlayer()
     if (!bindService(intent, player, Context.BIND_AUTO_CREATE)) {
         if (BuildConfig.DEBUG) {

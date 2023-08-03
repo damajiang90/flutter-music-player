@@ -11,4 +11,14 @@ class LocalMusicScanner {
     completer.complete(songs);
     return completer.future;
   }
+
+  static Future<Uint8List> loadContentThumbnail(Uri uri) async {
+    var arguments = <String, String> {
+      "uri": uri.toString()
+    };
+    var completer = Completer<Uint8List>();
+    Uint8List thumbnail = await _channel.invokeMethod('loadContentThumbnail', arguments);
+    completer.complete(thumbnail);
+    return completer.future;
+  }
 }
