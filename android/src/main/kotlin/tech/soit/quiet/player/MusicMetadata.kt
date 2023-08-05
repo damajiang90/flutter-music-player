@@ -17,6 +17,8 @@ data class MusicMetadata constructor(val obj: Map<String, Any?>) : Parcelable {
 
     val mediaUri: String? get() = obj["mediaUri"] as String?
 
+    val artists: String? get() = obj["artists"]  as String?
+
     val fee: String? get() = (obj["extras"] as Map<String, Any?>?)?.get("fee") as String?
 
     val isLocal: Boolean get() = "local" == fee

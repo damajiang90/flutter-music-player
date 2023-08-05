@@ -128,9 +128,11 @@ class MusicSessionCallbackAdapter(
 
 private fun MusicMetadata.toMediaMetadata(): MediaMetadataCompat {
     return MediaMetadataCompat.Builder()
+        .putText(MediaMetadataCompat.METADATA_KEY_TITLE, title)
+        .putText(MediaMetadataCompat.METADATA_KEY_ARTIST, artists)
+        .putLong(MediaMetadataCompat.METADATA_KEY_DURATION, duration ?: 0L)
         .putText(MediaMetadataCompat.METADATA_KEY_DISPLAY_TITLE, title)
         .putText(MediaMetadataCompat.METADATA_KEY_DISPLAY_SUBTITLE, subtitle)
-        .putLong(MediaMetadataCompat.METADATA_KEY_DURATION, duration ?: 0L)
         .putText(MediaMetadataCompat.METADATA_KEY_MEDIA_ID, mediaId)
         .putString(MediaMetadataCompat.METADATA_KEY_DISPLAY_ICON_URI, iconUri)
         .putBitmap(

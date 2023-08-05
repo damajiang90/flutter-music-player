@@ -128,13 +128,13 @@ private class MusicPlayerUiChannel : MethodChannel.MethodCallHandler {
 private fun Context.startMusicService(): RemotePlayer {
     val intent = Intent(this, MusicPlayerService::class.java)
     intent.action = MusicPlayerService.ACTION_MUSIC_PLAYER_SERVICE
-    /*if(Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
+    if(Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
         this.startForegroundService(intent)
     }
     else {
         this.startService(intent)
-    }*/
-    this.startService(intent)
+    }
+    //this.startService(intent)
     val player = RemotePlayer()
     if (!bindService(intent, player, Context.BIND_AUTO_CREATE)) {
         if (BuildConfig.DEBUG) {

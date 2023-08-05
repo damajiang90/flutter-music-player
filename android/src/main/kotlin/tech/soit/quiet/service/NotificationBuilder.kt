@@ -7,6 +7,7 @@ import android.graphics.Bitmap
 import android.os.Build
 import android.support.v4.media.session.MediaSessionCompat
 import android.support.v4.media.session.PlaybackStateCompat
+import android.util.Log
 import androidx.annotation.MainThread
 import androidx.annotation.RequiresApi
 import androidx.core.app.NotificationCompat
@@ -148,7 +149,7 @@ class NotificationAdapter(
 private class NotificationBuilder(private val context: Service) : CoroutineScope by MainScope() {
 
     companion object {
-        const val NOW_PLAYING_CHANNEL: String = "TODO" //TODO build channel from context
+        const val NOW_PLAYING_CHANNEL: String = "com.cqjiulin.tiny_music" //TODO build channel from context
         const val NOW_PLAYING_NOTIFICATION: Int = 0xb339
 
     }
@@ -210,17 +211,18 @@ private class NotificationBuilder(private val context: Service) : CoroutineScope
         }
 
         fun updateNotificationInner(artwork: Bitmap?, color: Int?) {
-            notificationGenerator.trySend(
-                NotificationItem.State(
-                    playbackState, buildNotificationWithIcon(
-                        mediaSessionCompat.sessionToken,
-                        metadata,
-                        playbackState,
-                        mediaSessionCompat.controller.sessionActivity,
-                        artwork,
-                        color
-                    )
+            val item = NotificationItem.State(
+                playbackState, buildNotificationWithIcon(
+                    mediaSessionCompat.sessionToken,
+                    metadata,
+                    playbackState,
+                    mediaSessionCompat.controller.sessionActivity,
+                    artwork,
+                    color
                 )
+            )
+            notificationGenerator.trySend(
+                item
             )
         }
 
@@ -317,6 +319,11 @@ private class NotificationBuilder(private val context: Service) : CoroutineScope
             .apply {
                 description = "show what's playing in ${context.applicationInfo.name}"
             }
+        notificationChannel.setShowBadge(false);
+        notificationChannel.enableVibration(false);
+        notificationChannel.vibrationPattern = longArrayOf(0);
+        notificationChannel.setSound(null, null);
+        notificationChannel.enableLights(false);
 
         platformNotificationManager.createNotificationChannel(notificationChannel)
     }

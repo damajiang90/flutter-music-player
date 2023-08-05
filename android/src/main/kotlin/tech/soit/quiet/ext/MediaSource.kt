@@ -2,7 +2,9 @@ package tech.soit.quiet.ext
 
 import android.content.Context
 import android.net.Uri
+import android.util.Log
 import com.google.android.exoplayer2.MediaItem
+import com.google.android.exoplayer2.MediaMetadata
 import com.google.android.exoplayer2.source.ProgressiveMediaSource
 import com.google.android.exoplayer2.upstream.DataSource
 import com.google.android.exoplayer2.upstream.DataSpec
@@ -18,8 +20,17 @@ internal fun MusicMetadata.toMediaSource(
 ): ProgressiveMediaSource {
     var factory: DataSource.Factory = DefaultDataSource.Factory(context)
     factory = UrlUpdatingDataSource.Factory(factory, servicePlugin)
+    val mediaItem = MediaItem.Builder()
+        .setMediaId(this.mediaId)
+        .setUri(buildMediaUri(this))
+        .setMediaMetadata(MediaMetadata.Builder()
+            .setTitle(this.title)
+            .setArtist(this.artists)
+            .setDisplayTitle(this.title)
+            .setSubtitle(this.subtitle)
+            .build()).build()
     return ProgressiveMediaSource.Factory(factory)
-        .createMediaSource(MediaItem.fromUri(buildMediaUri(this)))
+        .createMediaSource(mediaItem)
 }
 
 
