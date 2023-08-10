@@ -17,6 +17,9 @@ import java.lang.Exception
 import java.util.Random
 
 class MusicPlayerScanner(activity: Activity) {
+    companion object {
+        const val TAG = "MusicPlayerScanner"
+    }
     private var activity: Activity = activity
     private var mContentResolver: ContentResolver? = activity.contentResolver
     private val mSongs: MutableList<Song> = ArrayList()
@@ -52,26 +55,24 @@ class MusicPlayerScanner(activity: Activity) {
         val durationColumn = cur.getColumnIndex(MediaStore.Audio.Media.DURATION)
         val idColumn = cur.getColumnIndex(MediaStore.Audio.Media._ID)
         val dateColumn = cur.getColumnIndex(MediaStore.Audio.Media.DATE_ADDED)
-        val trackIdColumn = cur.getColumnIndex(MediaStore.Audio.Media.TRACK)
         do {
-            val trackIdStr = cur.getString(trackIdColumn)
-            var trackId = 0
-            if (!TextUtils.isEmpty(trackIdStr)) {
-                trackId = trackIdStr.toInt()
+            try {
+                val song = Song(
+                    cur.getLong(idColumn),
+                    cur.getString(artistColumn),
+                    cur.getString(titleColumn),
+                    cur.getString(albumColumn),
+                    cur.getLong(albumArtColumn),
+                    cur.getLong(durationColumn),
+                    mAudioPath[cur.getLong(idColumn)],
+                    mAlbumMap[cur.getLong(albumArtColumn)],
+                    cur.getLong(dateColumn)
+                )
+                mSongs.add(song)
             }
-            val song = Song(
-                cur.getLong(idColumn),
-                cur.getString(artistColumn),
-                cur.getString(titleColumn),
-                cur.getString(albumColumn),
-                cur.getLong(albumArtColumn),
-                cur.getLong(durationColumn),
-                mAudioPath[cur.getLong(idColumn)],
-                mAlbumMap[cur.getLong(albumArtColumn)],
-                trackId.toLong(),
-                cur.getLong(dateColumn)
-            )
-            mSongs.add(song)
+            catch (e: Exception) {
+                Log.e(TAG, "scan cursor error:${e.stackTrace}")
+            }
         } while (cur.moveToNext())
         return mSongs
     }
@@ -105,8 +106,8 @@ class MusicPlayerScanner(activity: Activity) {
             null
         )
         if (cursor!!.moveToFirst()) {
-            val localAlbumDir = activity.getExternalFilesDir("localAlbum")
             val mNeedCacheAlbum = Build.VERSION.SDK_INT >= Build.VERSION_CODES.Q
+            /*val localAlbumDir = activity.getExternalFilesDir("localAlbum")
             val albumSize = if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.LOLLIPOP)
                 Size(256, 256) else null
             if(mNeedCacheAlbum) {
@@ -116,9 +117,9 @@ class MusicPlayerScanner(activity: Activity) {
                     }
                     localAlbumDir.mkdir()
                 }
-            }
+            }*/
             do {
-                var album: Bitmap? = null;
+                //var album: Bitmap? = null;
                 try {
                     val id = cursor.getLong(cursor.getColumnIndexOrThrow(MediaStore.Audio.Media._ID))
                     val path = cursor.getString(cursor.getColumnIndexOrThrow(MediaStore.Audio.Media.DATA))
@@ -146,7 +147,7 @@ class MusicPlayerScanner(activity: Activity) {
                     exception.printStackTrace()
                 }
                 finally {
-                    album?.recycle()
+                    //album?.recycle()
                 }
             } while (cursor.moveToNext())
         }
@@ -174,7 +175,6 @@ class MusicPlayerScanner(activity: Activity) {
         private var duration: Long
         private var uri: String?
         private var albumArt: String?
-        private var trackId: Long
         private var dateAdded: Long
 
         constructor(
@@ -184,7 +184,6 @@ class MusicPlayerScanner(activity: Activity) {
             album: String,
             duration: Long,
             albumId: Long,
-            trackId: Long,
             dateAdded: Long
         ) {
             this.id = id
@@ -195,7 +194,6 @@ class MusicPlayerScanner(activity: Activity) {
             this.albumId = albumId
             uri = genRI
             albumArt = getAlbum(albumId)
-            this.trackId = trackId
             this.dateAdded = dateAdded
         }
 
@@ -208,7 +206,6 @@ class MusicPlayerScanner(activity: Activity) {
             duration: Long,
             uri: String?,
             albumArt: String?,
-            trackId: Long,
             dateAdded: Long
         ) {
             this.id = id
@@ -219,7 +216,6 @@ class MusicPlayerScanner(activity: Activity) {
             this.duration = duration
             this.uri = uri
             this.albumArt = albumArt
-            this.trackId = trackId
             this.dateAdded = dateAdded
         }//                String title = mediaCursor.getString(mediaCursor.getColumnIndex(MediaStore.Audio.Media.TITLE));
 
@@ -282,7 +278,6 @@ class MusicPlayerScanner(activity: Activity) {
             songsMap["duration"] = duration
             songsMap["uri"] = uri
             songsMap["imageUrl"] = albumArt
-            songsMap["trackId"] = trackId
             songsMap["dateAdded"] = dateAdded
             return songsMap
         }
