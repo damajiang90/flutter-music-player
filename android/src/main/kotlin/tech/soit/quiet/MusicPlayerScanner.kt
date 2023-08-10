@@ -12,9 +12,6 @@ import android.provider.MediaStore
 import android.text.TextUtils
 import android.util.Log
 import android.util.Size
-import androidx.annotation.RequiresApi
-import java.io.ByteArrayOutputStream
-import java.io.File
 import java.io.FileNotFoundException
 import java.lang.Exception
 import java.util.Random
@@ -27,7 +24,8 @@ class MusicPlayerScanner(activity: Activity) {
     private val mAlbumMap = HashMap<Long, String>()
     private val mAudioPath = HashMap<Long, String>()
 
-    fun prepare() {
+    fun scanAllSongs(): List<Song>? {
+        mSongs.clear()
         if(Build.VERSION.SDK_INT < Build.VERSION_CODES.Q) {
             // load all album art
             loadAlbumArt()
@@ -38,12 +36,14 @@ class MusicPlayerScanner(activity: Activity) {
 
         // query all music audio
         val uri = MediaStore.Audio.Media.EXTERNAL_CONTENT_URI
-        val cur = mContentResolver!!.query(
+        /*val cur = mContentResolver!!.query(
             uri, null,
             MediaStore.Audio.Media.IS_MUSIC + " = 1", null, null
-        ) ?: return
+        )*/
+        val cur = mContentResolver!!.query(uri, null, MediaStore.Audio.Media.IS_MUSIC, null, MediaStore.Audio.Media.IS_MUSIC)
+            ?: return mSongs
         if (!cur.moveToFirst()) {
-            return
+            return mSongs
         }
         val artistColumn = cur.getColumnIndex(MediaStore.Audio.Media.ARTIST)
         val titleColumn = cur.getColumnIndex(MediaStore.Audio.Media.TITLE)
@@ -53,7 +53,6 @@ class MusicPlayerScanner(activity: Activity) {
         val idColumn = cur.getColumnIndex(MediaStore.Audio.Media._ID)
         val dateColumn = cur.getColumnIndex(MediaStore.Audio.Media.DATE_ADDED)
         val trackIdColumn = cur.getColumnIndex(MediaStore.Audio.Media.TRACK)
-        val musicDirPath = Environment.getExternalStoragePublicDirectory(Environment.DIRECTORY_MUSIC).absolutePath
         do {
             val trackIdStr = cur.getString(trackIdColumn)
             var trackId = 0
@@ -72,10 +71,9 @@ class MusicPlayerScanner(activity: Activity) {
                 trackId.toLong(),
                 cur.getLong(dateColumn)
             )
-            if (song.getUri()!!.startsWith(musicDirPath)) {
-                mSongs.add(song)
-            }
+            mSongs.add(song)
         } while (cur.moveToNext())
+        return mSongs
     }
 
     private fun loadAlbumArt() {

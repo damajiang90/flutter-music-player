@@ -7,7 +7,6 @@ import android.content.pm.PackageManager
 import android.graphics.Bitmap
 import android.net.Uri
 import android.os.Build
-import android.os.Environment
 import android.os.Process
 import android.util.Size
 import androidx.annotation.RequiresApi
@@ -105,7 +104,7 @@ class MusicPlayerScannerChannel: MethodCallHandler, RequestPermissionsResultList
         }
     }
 
-    private fun scanMusicFiles(files: Array<File>) {
+    /*private fun scanMusicFiles(files: Array<File>) {
         for (file in files) {
             if (file.isDirectory) {
                 scanMusicFiles(file.listFiles())
@@ -118,13 +117,13 @@ class MusicPlayerScannerChannel: MethodCallHandler, RequestPermissionsResultList
                 )
             }
         }
-    }
+    }*/
     private fun scanAllSongs(): java.util.ArrayList<java.util.HashMap<*, *>>? {
         val scanner = MusicPlayerScanner(activity)
         // Scan all files under Music folder in external storage directory
-        scanMusicFiles(Environment.getExternalStoragePublicDirectory(Environment.DIRECTORY_MUSIC).listFiles())
-        scanner.prepare()
-        val allSongs: List<MusicPlayerScanner.Song>? = scanner.getAllSongs()
+        //scanMusicFiles(Environment.getExternalStoragePublicDirectory(Environment.DIRECTORY_MUSIC).listFiles())
+
+        val allSongs: List<MusicPlayerScanner.Song>? = scanner.scanAllSongs()
         val songsMapList = ArrayList<HashMap<*, *>>()
         if(allSongs != null) {
             for (song in allSongs) {
