@@ -17,7 +17,7 @@ class LocalMusicScanner {
       "uri": uri.toString()
     };
     var completer = Completer<Uint8List>();
-    Uint8List thumbnail = await _channel.invokeMethod('loadContentThumbnail', arguments);
+    Uint8List thumbnail = await _channel.invokeMethod('loadContentThumbnail', arguments) ?? Uint8List(0);
     completer.complete(thumbnail);
     return completer.future;
   }

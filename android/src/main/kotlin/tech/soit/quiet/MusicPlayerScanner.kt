@@ -3,16 +3,10 @@ package tech.soit.quiet
 import android.app.Activity
 import android.content.ContentResolver
 import android.content.ContentUris
-import android.database.Cursor
-import android.graphics.Bitmap
-import android.net.Uri
 import android.os.Build
-import android.os.Environment
 import android.provider.MediaStore
 import android.text.TextUtils
 import android.util.Log
-import android.util.Size
-import java.io.FileNotFoundException
 import java.lang.Exception
 import java.util.Random
 
@@ -25,24 +19,18 @@ class MusicPlayerScanner(activity: Activity) {
     private val mSongs: MutableList<Song> = ArrayList()
     private val mRandom = Random()
     private val mAlbumMap = HashMap<Long, String>()
-    private val mAudioPath = HashMap<Long, String>()
+    /*  private val mAudioPath = HashMap<Long, String>()*/
 
     fun scanAllSongs(): List<Song>? {
         mSongs.clear()
-        /*if(Build.VERSION.SDK_INT < Build.VERSION_CODES.Q) {
+        mAlbumMap.clear()
+        if(Build.VERSION.SDK_INT < Build.VERSION_CODES.Q) {
             // load all album art
             loadAlbumArt()
         }
 
-        // query all audio path
-        loadAudioPath()*/
-
         // query all music audio
         val uri = MediaStore.Audio.Media.EXTERNAL_CONTENT_URI
-        /*val cur = mContentResolver!!.query(
-            uri, null,
-            MediaStore.Audio.Media.IS_MUSIC + " = 1", null, null
-        )*/
         val cur = mContentResolver!!.query(uri, null, MediaStore.Audio.Media.IS_MUSIC, null, MediaStore.Audio.Media.IS_MUSIC)
             ?: return mSongs
         if (!cur.moveToFirst()) {
@@ -52,20 +40,29 @@ class MusicPlayerScanner(activity: Activity) {
         val artistColumn = cur.getColumnIndex(MediaStore.Audio.Media.ARTIST)
         val titleColumn = cur.getColumnIndex(MediaStore.Audio.Media.TITLE)
         val albumColumn = cur.getColumnIndex(MediaStore.Audio.Media.ALBUM)
-        val albumArtColumn = cur.getColumnIndex(MediaStore.Audio.Media.ALBUM_ID)
+        val albumIdColumn = cur.getColumnIndex(MediaStore.Audio.Media.ALBUM_ID)
         val durationColumn = cur.getColumnIndex(MediaStore.Audio.Media.DURATION)
         val dateColumn = cur.getColumnIndex(MediaStore.Audio.Media.DATE_ADDED)
+        val dataColumn = cur.getColumnIndex(MediaStore.Audio.Media.DATA);
+        val needContentAlbum = Build.VERSION.SDK_INT >= Build.VERSION_CODES.Q
         do {
             try {
+                val id = cur.getLong(idColumn)
+                val albumId = cur.getLong(albumIdColumn)
+                val albumUrl: String? = if(needContentAlbum) {
+                    ContentUris.withAppendedId(MediaStore.Audio.Media.EXTERNAL_CONTENT_URI, id).toString()
+                } else {
+                    mAlbumMap[albumId]
+                }
                 val song = Song(
-                    cur.getLong(idColumn),
+                    id,
                     cur.getString(artistColumn),
                     cur.getString(titleColumn),
                     cur.getString(albumColumn),
-                    cur.getLong(albumArtColumn),
+                    albumId,
                     cur.getLong(durationColumn),
-                    mAudioPath[cur.getLong(idColumn)],
-                    mAlbumMap[cur.getLong(albumArtColumn)],
+                    cur.getString(dataColumn),
+                    albumUrl,
                     cur.getLong(dateColumn)
                 )
                 mSongs.add(song)
@@ -86,68 +83,13 @@ class MusicPlayerScanner(activity: Activity) {
             null
         )
         if (cursor!!.moveToFirst()) {
+            val albumIdColumn = cursor.getColumnIndex(MediaStore.Audio.Albums._ID)
+            val albumArtColumn = cursor.getColumnIndex(MediaStore.Audio.Albums.ALBUM_ART)
             do {
-                val id = cursor.getLong(cursor.getColumnIndexOrThrow(MediaStore.Audio.Albums._ID))
-                val path = cursor.getString(cursor.getColumnIndexOrThrow(MediaStore.Audio.Albums.ALBUM_ART))
+                val id = cursor.getLong(albumIdColumn)
+                val path = cursor.getString(albumArtColumn)
                 if(!TextUtils.isEmpty(path)) {
                     mAlbumMap[id] = path
-                }
-            } while (cursor.moveToNext())
-        }
-        cursor.close()
-    }
-
-    private fun loadAudioPath() {
-        val cursor = mContentResolver!!.query(
-            MediaStore.Audio.Media.EXTERNAL_CONTENT_URI,
-            arrayOf(MediaStore.Audio.Media._ID, MediaStore.Audio.Media.DATA, MediaStore.Audio.Media.ALBUM_ID),
-            null,
-            null,
-            null
-        )
-        if (cursor!!.moveToFirst()) {
-            val mNeedCacheAlbum = Build.VERSION.SDK_INT >= Build.VERSION_CODES.Q
-            /*val localAlbumDir = activity.getExternalFilesDir("localAlbum")
-            val albumSize = if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.LOLLIPOP)
-                Size(256, 256) else null
-            if(mNeedCacheAlbum) {
-                if (localAlbumDir != null) {
-                    if(localAlbumDir.exists()) {
-                        localAlbumDir.delete()
-                    }
-                    localAlbumDir.mkdir()
-                }
-            }*/
-            do {
-                //var album: Bitmap? = null;
-                try {
-                    val id = cursor.getLong(cursor.getColumnIndexOrThrow(MediaStore.Audio.Media._ID))
-                    val path = cursor.getString(cursor.getColumnIndexOrThrow(MediaStore.Audio.Media.DATA))
-                    if(!TextUtils.isEmpty(path)) {
-                        mAudioPath[id] = path
-                        if (mNeedCacheAlbum) {
-                            val albumId = cursor.getLong(cursor.getColumnIndexOrThrow(MediaStore.Audio.Media.ALBUM_ID))
-                            val contentUri: Uri = ContentUris.withAppendedId(MediaStore.Audio.Media.EXTERNAL_CONTENT_URI, id)
-                            mAlbumMap[albumId] = contentUri.toString()
-                            /*album = getContentResolver()!!.loadThumbnail(contentUri, albumSize!!, null)
-                            if(album != null) {
-                                val byteArrayStream = ByteArrayOutputStream()
-                                album.compress(Bitmap.CompressFormat.JPEG, 80, byteArrayStream)
-                                val file = File(localAlbumDir, "album_${albumId}.jpg")
-                                file.writeBytes(byteArrayStream.toByteArray())
-                                mAlbumMap[albumId] = file.path
-                                Log.i("saveCacheAlbum:", "albumId:$albumId,len:${file.length()},uri:${file.path}")
-                            }*/
-                        }
-                    }
-                }
-                catch (_: FileNotFoundException) {
-                }
-                catch (exception: Exception) {
-                    exception.printStackTrace()
-                }
-                finally {
-                    //album?.recycle()
                 }
             } while (cursor.moveToNext())
         }
