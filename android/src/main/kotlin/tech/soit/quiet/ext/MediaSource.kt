@@ -41,7 +41,7 @@ private const val SCHEME = "quiet"
  * this uri will handle in [UrlUpdatingDataSource]
  */
 private fun buildMediaUri(metadata: MusicMetadata): Uri {
-    return if(metadata.isLocal) {
+    return if(metadata.isLocal || metadata.isMatchingToLocal) {
         Uri.fromFile(File(metadata.mediaUri))
     }
     else {
