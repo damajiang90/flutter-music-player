@@ -29,13 +29,13 @@ class MusicPlayerScanner(activity: Activity) {
 
     fun scanAllSongs(): List<Song>? {
         mSongs.clear()
-        if(Build.VERSION.SDK_INT < Build.VERSION_CODES.Q) {
+        /*if(Build.VERSION.SDK_INT < Build.VERSION_CODES.Q) {
             // load all album art
             loadAlbumArt()
         }
 
         // query all audio path
-        loadAudioPath()
+        loadAudioPath()*/
 
         // query all music audio
         val uri = MediaStore.Audio.Media.EXTERNAL_CONTENT_URI
@@ -48,12 +48,12 @@ class MusicPlayerScanner(activity: Activity) {
         if (!cur.moveToFirst()) {
             return mSongs
         }
+        val idColumn = cur.getColumnIndex(MediaStore.Audio.Media._ID)
         val artistColumn = cur.getColumnIndex(MediaStore.Audio.Media.ARTIST)
         val titleColumn = cur.getColumnIndex(MediaStore.Audio.Media.TITLE)
         val albumColumn = cur.getColumnIndex(MediaStore.Audio.Media.ALBUM)
         val albumArtColumn = cur.getColumnIndex(MediaStore.Audio.Media.ALBUM_ID)
         val durationColumn = cur.getColumnIndex(MediaStore.Audio.Media.DURATION)
-        val idColumn = cur.getColumnIndex(MediaStore.Audio.Media._ID)
         val dateColumn = cur.getColumnIndex(MediaStore.Audio.Media.DATE_ADDED)
         do {
             try {
@@ -78,7 +78,7 @@ class MusicPlayerScanner(activity: Activity) {
     }
 
     private fun loadAlbumArt() {
-        val cursor = getContentResolver()!!.query(
+        val cursor = mContentResolver!!.query(
             MediaStore.Audio.Albums.EXTERNAL_CONTENT_URI,
             arrayOf(MediaStore.Audio.Albums._ID, MediaStore.Audio.Albums.ALBUM_ART),
             null,
@@ -98,7 +98,7 @@ class MusicPlayerScanner(activity: Activity) {
     }
 
     private fun loadAudioPath() {
-        val cursor = getContentResolver()!!.query(
+        val cursor = mContentResolver!!.query(
             MediaStore.Audio.Media.EXTERNAL_CONTENT_URI,
             arrayOf(MediaStore.Audio.Media._ID, MediaStore.Audio.Media.DATA, MediaStore.Audio.Media.ALBUM_ID),
             null,
@@ -182,26 +182,6 @@ class MusicPlayerScanner(activity: Activity) {
             artist: String,
             title: String,
             album: String,
-            duration: Long,
-            albumId: Long,
-            dateAdded: Long
-        ) {
-            this.id = id
-            this.artist = artist
-            this.title = title
-            this.album = album
-            this.duration = duration
-            this.albumId = albumId
-            uri = genRI
-            albumArt = getAlbum(albumId)
-            this.dateAdded = dateAdded
-        }
-
-        constructor(
-            id: Long,
-            artist: String,
-            title: String,
-            album: String,
             albumId: Long,
             duration: Long,
             uri: String?,
@@ -217,55 +197,10 @@ class MusicPlayerScanner(activity: Activity) {
             this.uri = uri
             this.albumArt = albumArt
             this.dateAdded = dateAdded
-        }//                String title = mediaCursor.getString(mediaCursor.getColumnIndex(MediaStore.Audio.Media.TITLE));
-
-        //                String album = mediaCursor.getString(mediaCursor.getColumnIndex(MediaStore.Audio.Media.ALBUM));
-//                String artist = mediaCursor.getString(mediaCursor.getColumnIndex(MediaStore.Audio.Media.ARTIST));
-//                long duration = mediaCursor.getLong(mediaCursor.getColumnIndex(MediaStore.Audio.Media.DURATION));
-        //Do something with the data
-        //This is the id you are looking for
-        private val genRI: String?
-            get() {
-                val mediaContentUri = MediaStore.Audio.Media.EXTERNAL_CONTENT_URI
-                val projection = arrayOf(
-                    MediaStore.Audio.Media._ID,
-                    MediaStore.Audio.Media.ARTIST,
-                    MediaStore.Audio.Media.TITLE,
-                    MediaStore.Audio.Media.ALBUM,
-                    MediaStore.Audio.Media.DURATION,
-                    MediaStore.Audio.Media.DATA,
-                    MediaStore.Audio.Media.ALBUM_ID
-                )
-                val selection = MediaStore.Audio.Media._ID + "=?"
-                val selectionArgs = arrayOf("" + id) //This is the id you are looking for
-                val mediaCursor: Cursor? = this@MusicPlayerScanner.getContentResolver()?.query(
-                    mediaContentUri,
-                    projection,
-                    selection,
-                    selectionArgs,
-                    null
-                )
-                if(mediaCursor != null) {
-                    if (mediaCursor.count >= 0) {
-                        mediaCursor.moveToPosition(0)
-                        //                String title = mediaCursor.getString(mediaCursor.getColumnIndex(MediaStore.Audio.Media.TITLE));
-                        //                String album = mediaCursor.getString(mediaCursor.getColumnIndex(MediaStore.Audio.Media.ALBUM));
-                        //                String artist = mediaCursor.getString(mediaCursor.getColumnIndex(MediaStore.Audio.Media.ARTIST));
-                        //                long duration = mediaCursor.getLong(mediaCursor.getColumnIndex(MediaStore.Audio.Media.DURATION));
-                        uri = mediaCursor.getString(mediaCursor.getColumnIndexOrThrow(MediaStore.Audio.Media.DATA))
-                        //Do something with the data
-                    }
-                    mediaCursor.close()
-                }
-                return uri
-            }
+        }
 
         fun getUri(): String? {
             return uri
-        }
-
-        private fun getAlbum(albumId: Long): String {
-            return mAlbumMap[albumId] ?: ""
         }
 
         fun toMap(): HashMap<String, Any?> {
