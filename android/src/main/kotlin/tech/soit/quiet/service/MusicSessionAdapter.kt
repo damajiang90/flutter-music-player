@@ -96,7 +96,10 @@ class MusicSessionCallbackAdapter(
     }
 
     override fun onMetadataChanged(metadata: MusicMetadata?) {
-        mediaSession.setMetadata(metadata?.toMediaMetadata())
+        if(metadata?.duration != null && metadata.duration!! > 0) {
+            //这里判定duration>0 怀疑是消息回调会发生在缓存前 多次 这时候信息duration=0 频繁发送出去会接受不到
+            mediaSession.setMetadata(metadata.toMediaMetadata())
+        }
 
         metadata ?: return
         var intent = customIntent ?: launchIntent
