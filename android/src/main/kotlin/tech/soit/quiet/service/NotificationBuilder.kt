@@ -149,7 +149,7 @@ class NotificationAdapter(
 private class NotificationBuilder(private val context: Service) : CoroutineScope by MainScope() {
 
     companion object {
-        const val NOW_PLAYING_CHANNEL: String = "com.cqjiulin.tiny_music" //TODO build channel from context
+        const val NOW_PLAYING_CHANNEL: String = "flutter_music" //TODO build channel from context
         const val NOW_PLAYING_NOTIFICATION: Int = 0xb339
 
     }
