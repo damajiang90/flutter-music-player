@@ -41,6 +41,7 @@ class PlayQueue(
                 override fun newArray(size: Int): Array<PlayQueue?> = arrayOfNulls(size)
             }
     }
+    private val kFmTrackListId = "_fm_playlist"
 
     private val queue: MutableList<MusicItem> = queue.toMutableList()
 
@@ -116,6 +117,16 @@ class PlayQueue(
         if (anchor == null) {
             val index = if (next) 0 else queue.size - 1
             return if (playMode == PlayMode.Shuffle) requireMusicItem(shuffleMusicList[index]) else queue[index]
+        }
+        if(kFmTrackListId == queueId) {
+            var index = queue.index(anchor)
+            if(index < 0) return null
+            index += if (next) 1 else -1
+            return if (index >= queue.size || index <= -1) {
+                null
+            } else {
+                queue[index]
+            }
         }
         return when (playMode) {
             PlayMode.Single, PlayMode.Sequence -> {

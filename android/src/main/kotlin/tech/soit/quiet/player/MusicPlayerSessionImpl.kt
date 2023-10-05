@@ -114,6 +114,15 @@ class MusicPlayerSessionImpl constructor(private val context: Context) : MusicPl
     }
 
     private suspend fun getNext(anchor: MusicMetadata?): MusicMetadata? {
+        /*val sb = java.lang.StringBuilder()
+        val queue = playQueue.getQueue()
+        queue.forEach { item ->
+            sb.append(item.title)
+            sb.append(',')
+        }
+        val next = playQueue.getNext(anchor, playMode)
+        android.util.Log.e("getNext", "anchor:${anchor?.title},\nnext:${next?.title}\nplayMode:${playMode},playQueue:$sb}")
+        */
         return playQueue.getNext(anchor, playMode)
             ?: servicePlugin.onNoMoreMusic(SkipType.Next, playQueue, playMode)
     }
