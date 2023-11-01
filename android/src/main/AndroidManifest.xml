@@ -29,6 +29,16 @@
                 <action android:name="android.intent.action.MEDIA_BUTTON" />
             </intent-filter>
         </receiver>
+
+
+        <receiver android:label="@string/tiny_player_widget_name" android:name="tech.soit.quiet.appwidget.PlayerWidget"
+            android:exported="true">
+            <intent-filter>
+                <action android:name="android.appwidget.action.APPWIDGET_UPDATE"/>
+                <action android:name="com.cqjiulin.tiny_music.background_player_action"/>
+            </intent-filter>
+            <meta-data android:name="android.appwidget.provider" android:resource="@xml/player_widget_provider"/>
+        </receiver>
     </application>
 
 </manifest>
